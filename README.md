@@ -36,10 +36,10 @@
     ╚══════════════════════════════════════════════════════════════════════════════╝
 ```
 
-[![Version](https://img.shields.io/badge/version-1.0.0-cyan.svg)](https://github.com/yourusername/netwatch)
+[![Version](https://img.shields.io/badge/version-1.0.0-cyan.svg)](https://github.com/saladtosser/netwatch)
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://python.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Security](https://img.shields.io/badge/security-enterprise-red.svg)](https://github.com/yourusername/netwatch)
+[![Security](https://img.shields.io/badge/security-enterprise-red.svg)](https://github.com/saladtosser/netwatch)
 
 > **🔥 CYBERPUNK SECURITY SUITE** - Real-time network monitoring with professional-grade threat detection rules from the security community.
 
@@ -67,7 +67,7 @@ NetWatch is a **cyberpunk-inspired security suite** that combines the power of p
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/netwatch.git
+git clone https://github.com/saladtosser/netwatch.git
 cd netwatch
 
 # Install dependencies
@@ -324,10 +324,10 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ## 📞 **Support**
 
-- 🐛 **Bug Reports:** [GitHub Issues](https://github.com/yourusername/netwatch/issues)
-- 💬 **Discussions:** [GitHub Discussions](https://github.com/yourusername/netwatch/discussions)
-- 📧 **Email:** your.email@example.com
-- 🐦 **Twitter:** [@yourusername](https://twitter.com/yourusername)
+- 🐛 **Bug Reports:** [GitHub Issues](https://github.com/saladtosser/netwatch/issues)
+- 💬 **Discussions:** [GitHub Discussions](https://github.com/saladtosser/netwatch/discussions)
+- 📧 **Email:** saladb0y@proton.me
+- 📸 **Instagram:** [@mydemiseismyown](https://instagram.com/mydemiseismyown)
 
 ---
 
