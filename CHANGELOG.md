@@ -1,6 +1,6 @@
 # 🛡️ NetWatch - Changelog
 
-## Version 2.0 - Professional Security Suite
+## Version 1.0 - Professional Security Suite
 
 ### 🎯 **Major Changes**
 
