@@ -1,0 +1,38 @@
+# NetWatch v2 - Malicious Domains
+# Known malicious domains from various threat intelligence feeds
+
+# APT Domains
+apt-example.com
+malware-c2.net
+trojan-command.com
+
+# Cryptocurrency Mining
+monero-pool.org
+crypto-mining.net
+stratum-pool.com
+
+# Botnet C2
+botnet-command.net
+malware-c2.org
+trojan-control.com
+
+# Phishing Domains
+fake-bank-security.com
+paypal-security-update.net
+amazon-account-verify.org
+
+# Fast Flux Domains
+suspicious-domain.tk
+malicious-site.ml
+trojan-c2.ga
+
+# Tor Hidden Services
+malware-market.onion
+botnet-c2.onion
+apt-communication.onion
+
+# Suspicious TLDs
+malware-site.bit
+trojan-c2.cf
+botnet-command.ml
+

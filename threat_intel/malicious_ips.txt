@@ -1,0 +1,31 @@
+# NetWatch v2 - Malicious IP Addresses
+# Known malicious IPs from various threat intelligence feeds
+
+# APT Groups
+192.168.1.100
+10.0.0.50
+172.16.0.25
+
+# Botnet C2 Servers
+185.220.101.42
+45.146.164.110
+91.92.240.213
+
+# Cryptocurrency Mining Pools
+51.15.70.167
+51.15.70.168
+51.15.70.169
+
+# Known Malware Distribution
+198.51.100.1
+203.0.113.1
+192.0.2.1
+
+# Tor Exit Nodes (High Risk)
+185.220.101.1
+185.220.101.2
+185.220.101.3
+
+# Suspicious Cloud Providers
+45.146.164.0/24
+91.92.240.0/24

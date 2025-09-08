@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetWatch Corporation - Security Console</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #00ffff;
+            font-family: 'Courier New', 'Monaco', monospace;
+            overflow-x: hidden;
+        }
+        
+        /* Cyberpunk grid background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .navbar {
+            background: linear-gradient(90deg, #ff0040 0%, #8000ff 50%, #0040ff 100%);
+            border-bottom: 3px solid #00ffff;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+        
+        .navbar-brand {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-shadow: 0 0 10px #00ffff;
+        }
+        
+        .card {
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ffff;
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+        
+        .card:hover {
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.6);
+            transform: translateY(-2px);
+            transition: all 0.3s ease;
+        }
+        
+        .card-header {
+            background: rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .alert-critical {
+            background: linear-gradient(45deg, #dc3545, #c82333);
+            border: 1px solid #dc3545;
+        }
+        
+        .alert-high {
+            background: linear-gradient(45deg, #fd7e14, #e55a00);
+            border: 1px solid #fd7e14;
+        }
+        
+        .alert-medium {
+            background: linear-gradient(45deg, #ffc107, #e0a800);
+            border: 1px solid #ffc107;
+            color: #000;
+        }
+        
+        .alert-low {
+            background: linear-gradient(45deg, #28a745, #1e7e34);
+            border: 1px solid #28a745;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        .status-online { background-color: #28a745; }
+        .status-warning { background-color: #ffc107; }
+        .status-offline { background-color: #dc3545; }
+        
+        .glow {
+            box-shadow: 0 0 20px rgba(220, 53, 69, 0.5);
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .terminal-text {
+            font-family: 'Courier New', monospace;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 3px solid #00ff00;
+        }
+        
+        .threat-score {
+            font-size: 2rem;
+            font-weight: bold;
+            text-shadow: 0 0 10px currentColor;
+        }
+        
+        .network-node {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 2px;
+        }
+        
+        .node-router { background-color: #007bff; }
+        .node-server { background-color: #28a745; }
+        .node-workstation { background-color: #ffc107; }
+        .node-threat { background-color: #dc3545; }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-shield-alt"></i> NETWATCH CORPORATION
+            </a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text">
+                    <span class="status-indicator status-online"></span>
+                    System Online
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <!-- Header Stats -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-danger">
+                            <i class="fas fa-exclamation-triangle"></i> Critical Alerts
+                        </h5>
+                        <h2 class="threat-score text-danger" id="critical-alerts">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-warning">
+                            <i class="fas fa-exclamation-circle"></i> High Alerts
+                        </h5>
+                        <h2 class="threat-score text-warning" id="high-alerts">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-info">
+                            <i class="fas fa-chart-line"></i> Threat Score
+                        </h5>
+                        <h2 class="threat-score text-info" id="threat-score">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-success">
+                            <i class="fas fa-network-wired"></i> Packets Analyzed
+                        </h5>
+                        <h2 class="threat-score text-success" id="packets-analyzed">0</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Alerts Panel -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-bell"></i> Real-time Alerts</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="alerts-container" style="max-height: 500px; overflow-y: auto;">
+                            <!-- Alerts will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Stats -->
+            <div class="col-md-4">
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5><i class="fas fa-cogs"></i> System Status</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <span class="status-indicator status-online"></span>
+                            IDS Engine: <strong>Active</strong>
+                        </div>
+                        <div class="mb-2">
+                            <span class="status-indicator status-online"></span>
+                            Threat Intel: <strong>Updated</strong>
+                        </div>
+                        <div class="mb-2">
+                            <span class="status-indicator status-online"></span>
+                            Rules Engine: <strong>Loaded</strong>
+                        </div>
+                        <div class="mb-2">
+                            <span class="status-indicator status-online"></span>
+                            Database: <strong>Connected</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Network Topology -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-project-diagram"></i> Network Topology</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="network-topology">
+                            <!-- Network nodes will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-chart-bar"></i> Alert Trends</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="alertTrendsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-chart-pie"></i> Threat Distribution</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="threatDistributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Socket.IO connection
+        const socket = io();
+        
+        // Charts
+        const alertTrendsCtx = document.getElementById('alertTrendsChart').getContext('2d');
+        const threatDistributionCtx = document.getElementById('threatDistributionChart').getContext('2d');
+        
+        let alertTrendsChart = new Chart(alertTrendsCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Alerts',
+                    data: [],
+                    borderColor: '#dc3545',
+                    backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        labels: { color: '#ffffff' }
+                    }
+                },
+                scales: {
+                    x: { ticks: { color: '#ffffff' } },
+                    y: { ticks: { color: '#ffffff' } }
+                }
+            }
+        });
+        
+        let threatDistributionChart = new Chart(threatDistributionCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Critical', 'High', 'Medium', 'Low'],
+                datasets: [{
+                    data: [0, 0, 0, 0],
+                    backgroundColor: ['#dc3545', '#fd7e14', '#ffc107', '#28a745']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        labels: { color: '#ffffff' }
+                    }
+                }
+            }
+        });
+        
+        // Socket event handlers
+        socket.on('connect', function() {
+            console.log('Connected to NetWatch v2');
+        });
+        
+        socket.on('stats_update', function(data) {
+            updateStats(data);
+        });
+        
+        socket.on('alerts_update', function(alerts) {
+            updateAlerts(alerts);
+        });
+        
+        function updateStats(stats) {
+            document.getElementById('critical-alerts').textContent = stats.critical_alerts;
+            document.getElementById('high-alerts').textContent = stats.high_alerts;
+            document.getElementById('threat-score').textContent = stats.threat_score;
+            document.getElementById('packets-analyzed').textContent = stats.packets_analyzed;
+            
+            // Update threat distribution chart
+            threatDistributionChart.data.datasets[0].data = [
+                stats.critical_alerts,
+                stats.high_alerts,
+                stats.medium_alerts,
+                stats.low_alerts
+            ];
+            threatDistributionChart.update();
+        }
+        
+        function updateAlerts(alerts) {
+            const container = document.getElementById('alerts-container');
+            container.innerHTML = '';
+            
+            alerts.forEach(alert => {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert alert-${getSeverityClass(alert.threat_score)} mb-2`;
+                
+                alertDiv.innerHTML = `
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <strong>${alert.msg}</strong><br>
+                            <small>SID: ${alert.sid} | ${alert.src}:${alert.sport} → ${alert.dst}:${alert.dport}</small>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-dark">Score: ${alert.threat_score}</span><br>
+                            <small>${new Date(alert.timestamp * 1000).toLocaleTimeString()}</small>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(alertDiv);
+            });
+        }
+        
+        function getSeverityClass(threatScore) {
+            if (threatScore > 100) return 'critical';
+            if (threatScore > 50) return 'high';
+            if (threatScore > 20) return 'medium';
+            return 'low';
+        }
+        
+        // Load initial data
+        fetch('/api/stats')
+            .then(response => response.json())
+            .then(data => updateStats(data));
+        
+        fetch('/api/alerts')
+            .then(response => response.json())
+            .then(data => updateAlerts(data));
+        
+        // Update alert trends chart
+        setInterval(() => {
+            const now = new Date();
+            const timeLabel = now.toLocaleTimeString();
+            
+            alertTrendsChart.data.labels.push(timeLabel);
+            alertTrendsChart.data.datasets[0].data.push(Math.floor(Math.random() * 10));
+            
+            if (alertTrendsChart.data.labels.length > 20) {
+                alertTrendsChart.data.labels.shift();
+                alertTrendsChart.data.datasets[0].data.shift();
+            }
+            
+            alertTrendsChart.update('none');
+        }, 5000);
+    </script>
+</body>
+</html>
