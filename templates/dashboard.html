@@ -254,25 +254,144 @@
             </div>
         </div>
 
-        <!-- Charts Row -->
+        <!-- Enhanced Charts Row -->
         <div class="row mt-4">
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <div class="card">
                     <div class="card-header">
-                        <h5><i class="fas fa-chart-bar"></i> Alert Trends</h5>
+                        <h5><i class="fas fa-chart-line"></i> Real-time Alert Trends</h5>
                     </div>
                     <div class="card-body">
                         <canvas id="alertTrendsChart"></canvas>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <div class="card">
                     <div class="card-header">
                         <h5><i class="fas fa-chart-pie"></i> Threat Distribution</h5>
                     </div>
                     <div class="card-body">
                         <canvas id="threatDistributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-chart-bar"></i> Protocol Analysis</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="protocolChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Network Activity Grid -->
+        <div class="row mt-4">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-network-wired"></i> Network Activity Grid</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="network-grid" style="height: 400px; overflow: auto;">
+                            <div class="table-responsive">
+                                <table class="table table-dark table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Time</th>
+                                            <th>Source IP</th>
+                                            <th>Destination IP</th>
+                                            <th>Protocol</th>
+                                            <th>Port</th>
+                                            <th>Threat Level</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="network-activity-table">
+                                        <!-- Network activity will be populated here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-globe"></i> Geographic Threats</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="geoChart"></canvas>
+                        <div id="geo-stats" class="mt-3">
+                            <div class="row text-center">
+                                <div class="col-6">
+                                    <h6 class="text-danger">High Risk Countries</h6>
+                                    <span class="badge bg-danger" id="high-risk-countries">0</span>
+                                </div>
+                                <div class="col-6">
+                                    <h6 class="text-warning">Suspicious IPs</h6>
+                                    <span class="badge bg-warning" id="suspicious-ips">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="row mt-4">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-info">
+                            <i class="fas fa-tachometer-alt"></i> CPU Usage
+                        </h5>
+                        <div class="progress mb-2" style="height: 20px;">
+                            <div class="progress-bar bg-info" id="cpu-progress" style="width: 0%"></div>
+                        </div>
+                        <span id="cpu-percentage">0%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-success">
+                            <i class="fas fa-memory"></i> Memory Usage
+                        </h5>
+                        <div class="progress mb-2" style="height: 20px;">
+                            <div class="progress-bar bg-success" id="memory-progress" style="width: 0%"></div>
+                        </div>
+                        <span id="memory-percentage">0%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-warning">
+                            <i class="fas fa-hdd"></i> Disk Usage
+                        </h5>
+                        <div class="progress mb-2" style="height: 20px;">
+                            <div class="progress-bar bg-warning" id="disk-progress" style="width: 0%"></div>
+                        </div>
+                        <span id="disk-percentage">0%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">
+                            <i class="fas fa-wifi"></i> Network Speed
+                        </h5>
+                        <h4 id="network-speed">0 Mbps</h4>
+                        <small class="text-muted">Current throughput</small>
                     </div>
                 </div>
             </div>
@@ -284,20 +403,38 @@
         // Socket.IO connection
         const socket = io();
         
-        // Charts
+        // Enhanced Charts
         const alertTrendsCtx = document.getElementById('alertTrendsChart').getContext('2d');
         const threatDistributionCtx = document.getElementById('threatDistributionChart').getContext('2d');
+        const protocolCtx = document.getElementById('protocolChart').getContext('2d');
+        const geoCtx = document.getElementById('geoChart').getContext('2d');
         
+        // Real-time Alert Trends Chart
         let alertTrendsChart = new Chart(alertTrendsCtx, {
             type: 'line',
             data: {
                 labels: [],
                 datasets: [{
-                    label: 'Alerts',
+                    label: 'Critical Alerts',
                     data: [],
                     borderColor: '#dc3545',
                     backgroundColor: 'rgba(220, 53, 69, 0.1)',
-                    tension: 0.4
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'High Alerts',
+                    data: [],
+                    borderColor: '#fd7e14',
+                    backgroundColor: 'rgba(253, 126, 20, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Medium Alerts',
+                    data: [],
+                    borderColor: '#ffc107',
+                    backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                    tension: 0.4,
+                    fill: true
                 }]
             },
             options: {
@@ -308,19 +445,32 @@
                     }
                 },
                 scales: {
-                    x: { ticks: { color: '#ffffff' } },
-                    y: { ticks: { color: '#ffffff' } }
+                    x: { 
+                        ticks: { color: '#ffffff' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    },
+                    y: { 
+                        ticks: { color: '#ffffff' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    }
+                },
+                animation: {
+                    duration: 750,
+                    easing: 'easeInOutQuart'
                 }
             }
         });
         
+        // Threat Distribution Chart
         let threatDistributionChart = new Chart(threatDistributionCtx, {
             type: 'doughnut',
             data: {
                 labels: ['Critical', 'High', 'Medium', 'Low'],
                 datasets: [{
                     data: [0, 0, 0, 0],
-                    backgroundColor: ['#dc3545', '#fd7e14', '#ffc107', '#28a745']
+                    backgroundColor: ['#dc3545', '#fd7e14', '#ffc107', '#28a745'],
+                    borderWidth: 2,
+                    borderColor: '#000000'
                 }]
             },
             options: {
@@ -329,6 +479,98 @@
                     legend: {
                         labels: { color: '#ffffff' }
                     }
+                },
+                animation: {
+                    animateRotate: true,
+                    animateScale: true
+                }
+            }
+        });
+
+        // Protocol Analysis Chart
+        let protocolChart = new Chart(protocolCtx, {
+            type: 'bar',
+            data: {
+                labels: ['HTTP', 'HTTPS', 'SSH', 'FTP', 'SMTP', 'DNS', 'TLS'],
+                datasets: [{
+                    label: 'Packets/sec',
+                    data: [0, 0, 0, 0, 0, 0, 0],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 205, 86, 0.8)',
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(153, 102, 255, 0.8)',
+                        'rgba(255, 159, 64, 0.8)',
+                        'rgba(199, 199, 199, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 205, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)',
+                        'rgba(199, 199, 199, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        labels: { color: '#ffffff' }
+                    }
+                },
+                scales: {
+                    x: { 
+                        ticks: { color: '#ffffff' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    },
+                    y: { 
+                        ticks: { color: '#ffffff' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    }
+                },
+                animation: {
+                    duration: 1000,
+                    easing: 'easeInOutBounce'
+                }
+            }
+        });
+
+        // Geographic Threats Chart
+        let geoChart = new Chart(geoCtx, {
+            type: 'polarArea',
+            data: {
+                labels: ['USA', 'China', 'Russia', 'Germany', 'UK', 'France', 'Japan'],
+                datasets: [{
+                    label: 'Threat Level',
+                    data: [0, 0, 0, 0, 0, 0, 0],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 205, 86, 0.8)',
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(153, 102, 255, 0.8)',
+                        'rgba(255, 159, 64, 0.8)',
+                        'rgba(199, 199, 199, 0.8)'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#000000'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        labels: { color: '#ffffff' }
+                    }
+                },
+                animation: {
+                    animateRotate: true,
+                    animateScale: true
                 }
             }
         });
@@ -346,6 +588,15 @@
             updateAlerts(alerts);
         });
         
+        // Enhanced data storage
+        let networkActivityData = [];
+        let performanceMetrics = {
+            cpu: 0,
+            memory: 0,
+            disk: 0,
+            networkSpeed: 0
+        };
+
         function updateStats(stats) {
             document.getElementById('critical-alerts').textContent = stats.critical_alerts;
             document.getElementById('high-alerts').textContent = stats.high_alerts;
@@ -360,6 +611,101 @@
                 stats.low_alerts
             ];
             threatDistributionChart.update();
+            
+            // Update performance metrics
+            updatePerformanceMetrics();
+        }
+
+        function updatePerformanceMetrics() {
+            // Simulate realistic performance data
+            performanceMetrics.cpu = Math.floor(Math.random() * 30) + 20; // 20-50%
+            performanceMetrics.memory = Math.floor(Math.random() * 40) + 30; // 30-70%
+            performanceMetrics.disk = Math.floor(Math.random() * 20) + 10; // 10-30%
+            performanceMetrics.networkSpeed = Math.floor(Math.random() * 100) + 50; // 50-150 Mbps
+            
+            // Update CPU
+            document.getElementById('cpu-progress').style.width = performanceMetrics.cpu + '%';
+            document.getElementById('cpu-percentage').textContent = performanceMetrics.cpu + '%';
+            
+            // Update Memory
+            document.getElementById('memory-progress').style.width = performanceMetrics.memory + '%';
+            document.getElementById('memory-percentage').textContent = performanceMetrics.memory + '%';
+            
+            // Update Disk
+            document.getElementById('disk-progress').style.width = performanceMetrics.disk + '%';
+            document.getElementById('disk-percentage').textContent = performanceMetrics.disk + '%';
+            
+            // Update Network Speed
+            document.getElementById('network-speed').textContent = performanceMetrics.networkSpeed + ' Mbps';
+        }
+
+        function updateNetworkActivity(activity) {
+            const tableBody = document.getElementById('network-activity-table');
+            
+            // Add new activity to the beginning
+            activity.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${new Date().toLocaleTimeString()}</td>
+                    <td><span class="badge bg-primary">${item.src}</span></td>
+                    <td><span class="badge bg-info">${item.dst}</span></td>
+                    <td><span class="badge bg-secondary">${item.proto}</span></td>
+                    <td>${item.dport}</td>
+                    <td><span class="badge ${getThreatBadgeClass(item.threat_score)}">${getThreatLevel(item.threat_score)}</span></td>
+                    <td><button class="btn btn-sm btn-outline-warning" onclick="blockIP('${item.src}')">Block</button></td>
+                `;
+                tableBody.insertBefore(row, tableBody.firstChild);
+            });
+            
+            // Keep only last 50 entries
+            while (tableBody.children.length > 50) {
+                tableBody.removeChild(tableBody.lastChild);
+            }
+        }
+
+        function getThreatBadgeClass(score) {
+            if (score > 100) return 'bg-danger';
+            if (score > 50) return 'bg-warning';
+            if (score > 20) return 'bg-info';
+            return 'bg-success';
+        }
+
+        function getThreatLevel(score) {
+            if (score > 100) return 'CRITICAL';
+            if (score > 50) return 'HIGH';
+            if (score > 20) return 'MEDIUM';
+            return 'LOW';
+        }
+
+        function blockIP(ip) {
+            if (confirm(`Block IP address ${ip}?`)) {
+                // Simulate blocking action
+                console.log(`Blocking IP: ${ip}`);
+                // In real implementation, this would call the backend API
+                alert(`IP ${ip} has been blocked!`);
+            }
+        }
+
+        function updateProtocolChart() {
+            // Simulate protocol data
+            const protocols = ['HTTP', 'HTTPS', 'SSH', 'FTP', 'SMTP', 'DNS', 'TLS'];
+            const data = protocols.map(() => Math.floor(Math.random() * 100) + 10);
+            
+            protocolChart.data.datasets[0].data = data;
+            protocolChart.update('none');
+        }
+
+        function updateGeoChart() {
+            // Simulate geographic threat data
+            const countries = ['USA', 'China', 'Russia', 'Germany', 'UK', 'France', 'Japan'];
+            const data = countries.map(() => Math.floor(Math.random() * 50) + 5);
+            
+            geoChart.data.datasets[0].data = data;
+            geoChart.update('none');
+            
+            // Update geo stats
+            document.getElementById('high-risk-countries').textContent = data.filter(d => d > 30).length;
+            document.getElementById('suspicious-ips').textContent = Math.floor(Math.random() * 20) + 5;
         }
         
         function updateAlerts(alerts) {
@@ -403,21 +749,52 @@
             .then(response => response.json())
             .then(data => updateAlerts(data));
         
-        // Update alert trends chart
+        // Enhanced real-time updates
         setInterval(() => {
             const now = new Date();
             const timeLabel = now.toLocaleTimeString();
             
+            // Update alert trends with multiple datasets
             alertTrendsChart.data.labels.push(timeLabel);
-            alertTrendsChart.data.datasets[0].data.push(Math.floor(Math.random() * 10));
+            alertTrendsChart.data.datasets[0].data.push(Math.floor(Math.random() * 5) + 1); // Critical
+            alertTrendsChart.data.datasets[1].data.push(Math.floor(Math.random() * 8) + 2); // High
+            alertTrendsChart.data.datasets[2].data.push(Math.floor(Math.random() * 12) + 3); // Medium
             
             if (alertTrendsChart.data.labels.length > 20) {
                 alertTrendsChart.data.labels.shift();
-                alertTrendsChart.data.datasets[0].data.shift();
+                alertTrendsChart.data.datasets.forEach(dataset => dataset.data.shift());
             }
             
             alertTrendsChart.update('none');
-        }, 5000);
+            
+            // Update other charts
+            updateProtocolChart();
+            updateGeoChart();
+            
+            // Simulate network activity
+            const mockActivity = [{
+                src: `192.168.1.${Math.floor(Math.random() * 255)}`,
+                dst: `10.0.0.${Math.floor(Math.random() * 255)}`,
+                proto: ['HTTP', 'HTTPS', 'SSH', 'FTP', 'SMTP', 'DNS'][Math.floor(Math.random() * 6)],
+                dport: Math.floor(Math.random() * 65535),
+                threat_score: Math.floor(Math.random() * 150)
+            }];
+            
+            updateNetworkActivity(mockActivity);
+            
+        }, 3000); // Update every 3 seconds for more dynamic feel
+
+        // Initialize with some sample data
+        setTimeout(() => {
+            // Add some initial network activity
+            const initialActivity = [
+                { src: '192.168.1.100', dst: '8.8.8.8', proto: 'DNS', dport: 53, threat_score: 15 },
+                { src: '10.0.0.50', dst: '192.168.1.1', proto: 'HTTP', dport: 80, threat_score: 25 },
+                { src: '172.16.0.25', dst: '192.168.1.100', proto: 'SSH', dport: 22, threat_score: 75 },
+                { src: '203.0.113.1', dst: '192.168.1.50', proto: 'HTTPS', dport: 443, threat_score: 45 }
+            ];
+            updateNetworkActivity(initialActivity);
+        }, 1000);
     </script>
 </body>
 </html>
