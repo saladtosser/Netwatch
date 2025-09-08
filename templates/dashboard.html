@@ -109,6 +109,7 @@
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
         }
+
         
         .terminal-text {
             font-family: 'Courier New', monospace;
@@ -139,24 +140,52 @@
     </style>
 </head>
 <body>
-    <!-- Navigation -->
+    <!-- Enhanced Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">
-                <i class="fas fa-shield-alt"></i> NETWATCH CORPORATION
+            <a class="navbar-brand" href="#" onclick="showPage('dashboard')">
+                <i class="fas fa-shield-alt"></i> NETWATCH v1.1
             </a>
-            <div class="navbar-nav ms-auto">
+            
+            <!-- Navigation Menu -->
+            <div class="navbar-nav me-auto">
+                <a class="nav-link" href="#" onclick="showPage('dashboard')">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a class="nav-link" href="#" onclick="showPage('monitoring')">
+                    <i class="fas fa-eye"></i> Live Monitoring
+                </a>
+                <a class="nav-link" href="#" onclick="showPage('alerts')">
+                    <i class="fas fa-bell"></i> Alerts
+                </a>
+                <a class="nav-link" href="#" onclick="showPage('logs')">
+                    <i class="fas fa-file-alt"></i> Logs
+                </a>
+                <a class="nav-link" href="#" onclick="showPage('scanner')">
+                    <i class="fas fa-search"></i> Scanner
+                </a>
+                <a class="nav-link" href="#" onclick="showPage('settings')">
+                    <i class="fas fa-cog"></i> Settings
+                </a>
+            </div>
+            
+            <div class="navbar-nav">
                 <span class="navbar-text">
                     <span class="status-indicator status-online"></span>
                     System Online
                 </span>
+                <button class="btn btn-outline-light btn-sm ms-2" onclick="refreshAll()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
             </div>
         </div>
     </nav>
 
     <div class="container-fluid mt-4">
-        <!-- Header Stats -->
-        <div class="row mb-4">
+        <!-- Main Dashboard Page -->
+        <div id="dashboard-page" class="page-content">
+            <!-- Header Stats -->
+            <div class="row mb-4">
             <div class="col-md-3">
                 <div class="card text-center">
                     <div class="card-body">
@@ -396,6 +425,278 @@
                 </div>
             </div>
         </div>
+        </div>
+
+        <!-- Live Monitoring Page -->
+        <div id="monitoring-page" class="page-content" style="display: none;">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-eye"></i> Live Network Monitoring</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Real-time Packet Capture</h6>
+                                    <div id="packet-capture" style="height: 400px; overflow-y: auto; background: #000; color: #00ff00; font-family: monospace; padding: 10px;">
+                                        <div>Starting packet capture...</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Network Interfaces</h6>
+                                    <div id="interfaces-list">
+                                        <div class="card mb-2">
+                                            <div class="card-body">
+                                                <h6>eth0 <span class="badge bg-success">UP</span></h6>
+                                                <small>192.168.1.100/24 - 1.2 GB/s</small>
+                                            </div>
+                                        </div>
+                                        <div class="card mb-2">
+                                            <div class="card-body">
+                                                <h6>wlan0 <span class="badge bg-warning">UP</span></h6>
+                                                <small>10.0.0.50/24 - 850 MB/s</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts Management Page -->
+        <div id="alerts-page" class="page-content" style="display: none;">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between">
+                            <h5><i class="fas fa-bell"></i> Security Alerts Management</h5>
+                            <div>
+                                <button class="btn btn-sm btn-outline-warning" onclick="clearAlerts()">
+                                    <i class="fas fa-trash"></i> Clear All
+                                </button>
+                                <button class="btn btn-sm btn-outline-info" onclick="exportAlerts()">
+                                    <i class="fas fa-download"></i> Export
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <select class="form-select" id="severity-filter">
+                                        <option value="">All Severities</option>
+                                        <option value="critical">Critical</option>
+                                        <option value="high">High</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="low">Low</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="text" class="form-control" placeholder="Search alerts..." id="alert-search">
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="date" class="form-control" id="date-filter">
+                                </div>
+                                <div class="col-md-3">
+                                    <button class="btn btn-primary" onclick="filterAlerts()">
+                                        <i class="fas fa-filter"></i> Filter
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="alerts-management-container" style="max-height: 600px; overflow-y: auto;">
+                                <!-- Alerts will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logs Viewer Page -->
+        <div id="logs-page" class="page-content" style="display: none;">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between">
+                            <h5><i class="fas fa-file-alt"></i> System Logs</h5>
+                            <div>
+                                <select class="form-select d-inline-block w-auto" id="log-type">
+                                    <option value="alerts">Alerts Log</option>
+                                    <option value="events">Events Log</option>
+                                    <option value="system">System Log</option>
+                                </select>
+                                <button class="btn btn-sm btn-outline-success" onclick="downloadLogs()">
+                                    <i class="fas fa-download"></i> Download
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" placeholder="Search logs..." id="log-search">
+                                </div>
+                                <div class="col-md-2">
+                                    <select class="form-select" id="log-level">
+                                        <option value="">All Levels</option>
+                                        <option value="ERROR">ERROR</option>
+                                        <option value="WARNING">WARNING</option>
+                                        <option value="INFO">INFO</option>
+                                        <option value="DEBUG">DEBUG</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="number" class="form-control" placeholder="Lines" value="100" id="log-lines">
+                                </div>
+                                <div class="col-md-2">
+                                    <button class="btn btn-primary" onclick="loadLogs()">
+                                        <i class="fas fa-search"></i> Load
+                                    </button>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="auto-refresh">
+                                        <label class="form-check-label" for="auto-refresh">
+                                            Auto-refresh
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="logs-container" style="height: 500px; overflow-y: auto; background: #000; color: #00ff00; font-family: monospace; padding: 10px;">
+                                <div>Select a log type and click Load to view logs...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Network Scanner Page -->
+        <div id="scanner-page" class="page-content" style="display: none;">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-search"></i> Network Scanner</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Target Network</label>
+                                <input type="text" class="form-control" id="scan-target" placeholder="192.168.1.0/24" value="192.168.1.0/24">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Scan Type</label>
+                                <select class="form-select" id="scan-type">
+                                    <option value="ping">Ping Scan</option>
+                                    <option value="port">Port Scan</option>
+                                    <option value="vuln">Vulnerability Scan</option>
+                                    <option value="full">Full Scan</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Port Range</label>
+                                <input type="text" class="form-control" id="port-range" placeholder="1-1000" value="1-1000">
+                            </div>
+                            <button class="btn btn-primary" onclick="startScan()">
+                                <i class="fas fa-play"></i> Start Scan
+                            </button>
+                            <button class="btn btn-danger" onclick="stopScan()">
+                                <i class="fas fa-stop"></i> Stop Scan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-list"></i> Scan Results</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="scan-results" style="height: 400px; overflow-y: auto;">
+                                <div class="text-muted">No scan results yet. Start a scan to see results.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Page -->
+        <div id="settings-page" class="page-content" style="display: none;">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-cog"></i> System Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Update Interval (seconds)</label>
+                                <input type="number" class="form-control" id="update-interval" value="3" min="1" max="60">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Alert Threshold</label>
+                                <input type="number" class="form-control" id="alert-threshold" value="50" min="1" max="100">
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="auto-block" checked>
+                                    <label class="form-check-label" for="auto-block">
+                                        Auto-block suspicious IPs
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="email-alerts" checked>
+                                    <label class="form-check-label" for="email-alerts">
+                                        Email alerts for critical threats
+                                    </label>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" onclick="saveSettings()">
+                                <i class="fas fa-save"></i> Save Settings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-shield-alt"></i> Security Rules</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Active Rule Sets</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="suricata-rules" checked>
+                                    <label class="form-check-label" for="suricata-rules">
+                                        Suricata Rules (40+ rules)
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="snort-rules" checked>
+                                    <label class="form-check-label" for="snort-rules">
+                                        Snort Community Rules
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="yara-rules" checked>
+                                    <label class="form-check-label" for="yara-rules">
+                                        YARA Malware Rules
+                                    </label>
+                                </div>
+                            </div>
+                            <button class="btn btn-success" onclick="reloadRules()">
+                                <i class="fas fa-sync"></i> Reload Rules
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -575,6 +876,9 @@
             }
         });
         
+        // Load network topology on page load
+        loadNetworkTopology();
+        
         // Socket event handlers
         socket.on('connect', function() {
             console.log('Connected to NetWatch v2');
@@ -637,6 +941,124 @@
             
             // Update Network Speed
             document.getElementById('network-speed').textContent = performanceMetrics.networkSpeed + ' Mbps';
+        }
+
+        function loadNetworkTopology() {
+            fetch('/api/network-topology')
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('network-topology');
+                    container.innerHTML = '';
+                    
+                    // Create a simple network diagram
+                    const diagram = document.createElement('div');
+                    diagram.style.position = 'relative';
+                    diagram.style.height = '300px';
+                    diagram.style.border = '1px solid #00ffff';
+                    diagram.style.borderRadius = '5px';
+                    diagram.style.padding = '20px';
+                    diagram.style.background = 'rgba(0, 0, 0, 0.3)';
+                    
+                    // Add nodes
+                    data.nodes.forEach((node, index) => {
+                        const nodeDiv = document.createElement('div');
+                        nodeDiv.style.position = 'absolute';
+                        nodeDiv.style.width = '60px';
+                        nodeDiv.style.height = '60px';
+                        nodeDiv.style.border = '2px solid #00ffff';
+                        nodeDiv.style.borderRadius = '50%';
+                        nodeDiv.style.background = getThreatColor(node.threat_level);
+                        nodeDiv.style.display = 'flex';
+                        nodeDiv.style.alignItems = 'center';
+                        nodeDiv.style.justifyContent = 'center';
+                        nodeDiv.style.fontSize = '10px';
+                        nodeDiv.style.color = '#ffffff';
+                        nodeDiv.style.textAlign = 'center';
+                        nodeDiv.style.cursor = 'pointer';
+                        
+                        // Position nodes in a circle
+                        const angle = (index * 2 * Math.PI) / data.nodes.length;
+                        const radius = 100;
+                        const centerX = 150;
+                        const centerY = 150;
+                        const x = centerX + radius * Math.cos(angle) - 30;
+                        const y = centerY + radius * Math.sin(angle) - 30;
+                        
+                        nodeDiv.style.left = x + 'px';
+                        nodeDiv.style.top = y + 'px';
+                        
+                        nodeDiv.innerHTML = `
+                            <div>
+                                <div style="font-weight: bold;">${node.type}</div>
+                                <div style="font-size: 8px;">${node.id}</div>
+                            </div>
+                        `;
+                        
+                        nodeDiv.title = `${node.id} - ${node.type} - Threat: ${node.threat_level}`;
+                        diagram.appendChild(nodeDiv);
+                    });
+                    
+                    // Add connections
+                    data.links.forEach(link => {
+                        const sourceNode = data.nodes.find(n => n.id === link.source);
+                        const targetNode = data.nodes.find(n => n.id === link.target);
+                        
+                        if (sourceNode && targetNode) {
+                            const sourceIndex = data.nodes.indexOf(sourceNode);
+                            const targetIndex = data.nodes.indexOf(targetNode);
+                            
+                            const sourceAngle = (sourceIndex * 2 * Math.PI) / data.nodes.length;
+                            const targetAngle = (targetIndex * 2 * Math.PI) / data.nodes.length;
+                            const radius = 100;
+                            const centerX = 150;
+                            const centerY = 150;
+                            
+                            const sourceX = centerX + radius * Math.cos(sourceAngle);
+                            const sourceY = centerY + radius * Math.sin(sourceAngle);
+                            const targetX = centerX + radius * Math.cos(targetAngle);
+                            const targetY = centerY + radius * Math.sin(targetAngle);
+                            
+                            const line = document.createElement('div');
+                            line.style.position = 'absolute';
+                            line.style.height = '2px';
+                            line.style.background = getTrafficColor(link.traffic);
+                            line.style.transformOrigin = 'left center';
+                            
+                            const length = Math.sqrt(Math.pow(targetX - sourceX, 2) + Math.pow(targetY - sourceY, 2));
+                            const angle = Math.atan2(targetY - sourceY, targetX - sourceX) * 180 / Math.PI;
+                            
+                            line.style.width = length + 'px';
+                            line.style.left = sourceX + 'px';
+                            line.style.top = sourceY + 'px';
+                            line.style.transform = `rotate(${angle}deg)`;
+                            line.style.zIndex = '1';
+                            
+                            diagram.appendChild(line);
+                        }
+                    });
+                    
+                    container.appendChild(diagram);
+                })
+                .catch(error => console.error('Error loading network topology:', error));
+        }
+
+        function getThreatColor(level) {
+            switch(level) {
+                case 'low': return 'rgba(0, 255, 0, 0.7)';
+                case 'medium': return 'rgba(255, 255, 0, 0.7)';
+                case 'high': return 'rgba(255, 165, 0, 0.7)';
+                case 'critical': return 'rgba(255, 0, 0, 0.7)';
+                default: return 'rgba(128, 128, 128, 0.7)';
+            }
+        }
+
+        function getTrafficColor(traffic) {
+            switch(traffic) {
+                case 'low': return '#00ff00';
+                case 'medium': return '#ffff00';
+                case 'high': return '#ff0000';
+                default: return '#ffffff';
+            }
         }
 
         function updateNetworkActivity(activity) {
@@ -795,6 +1217,235 @@
             ];
             updateNetworkActivity(initialActivity);
         }, 1000);
+
+        // Page Navigation Functions
+        function showPage(pageName) {
+            // Hide all pages
+            const pages = document.querySelectorAll('.page-content');
+            pages.forEach(page => page.style.display = 'none');
+            
+            // Show selected page
+            document.getElementById(pageName + '-page').style.display = 'block';
+            
+            // Update active nav link
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => link.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Load page-specific data
+            if (pageName === 'logs') {
+                loadLogs();
+            } else if (pageName === 'alerts') {
+                loadAlertsManagement();
+            } else if (pageName === 'monitoring') {
+                startPacketCapture();
+            }
+        }
+
+        // Logs Management
+        function loadLogs() {
+            const logType = document.getElementById('log-type').value;
+            const logLevel = document.getElementById('log-level').value;
+            const logLines = document.getElementById('log-lines').value;
+            const logSearch = document.getElementById('log-search').value;
+            
+            const logsContainer = document.getElementById('logs-container');
+            logsContainer.innerHTML = '<div>Loading logs...</div>';
+            
+            // Simulate log loading
+            setTimeout(() => {
+                const sampleLogs = [
+                    `[${new Date().toISOString()}] INFO: NetWatch v1.1 started successfully`,
+                    `[${new Date().toISOString()}] WARNING: High CPU usage detected (85%)`,
+                    `[${new Date().toISOString()}] ERROR: Failed to connect to threat intelligence feed`,
+                    `[${new Date().toISOString()}] INFO: 15 new alerts processed`,
+                    `[${new Date().toISOString()}] DEBUG: Packet capture active on interface eth0`,
+                    `[${new Date().toISOString()}] INFO: Rule engine loaded 40+ detection rules`,
+                    `[${new Date().toISOString()}] WARNING: Suspicious activity from 192.168.1.100`,
+                    `[${new Date().toISOString()}] ERROR: Database connection timeout`,
+                    `[${new Date().toISOString()}] INFO: Web dashboard accessed from 192.168.1.50`,
+                    `[${new Date().toISOString()}] DEBUG: Memory usage: 45% (2.1GB/4.7GB)`
+                ];
+                
+                logsContainer.innerHTML = sampleLogs.join('<br>');
+            }, 1000);
+        }
+
+        function downloadLogs() {
+            const logType = document.getElementById('log-type').value;
+            alert(`Downloading ${logType} logs...`);
+        }
+
+        // Alerts Management
+        function loadAlertsManagement() {
+            const container = document.getElementById('alerts-management-container');
+            container.innerHTML = '';
+            
+            const sampleAlerts = [
+                { id: 1, time: '14:30:15', severity: 'HIGH', message: 'Suspicious User-Agent detected', source: '192.168.1.100', action: 'Blocked' },
+                { id: 2, time: '14:30:12', severity: 'CRITICAL', message: 'Cobalt Strike Beacon detected', source: '10.0.0.50', action: 'Blocked' },
+                { id: 3, time: '14:30:08', severity: 'MEDIUM', message: 'Port scan attempt detected', source: '172.16.0.25', action: 'Monitored' },
+                { id: 4, time: '14:29:45', severity: 'LOW', message: 'Unusual DNS query pattern', source: '192.168.1.50', action: 'Logged' }
+            ];
+            
+            sampleAlerts.forEach(alert => {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert alert-${getSeverityClass(alert.severity)} mb-2`;
+                alertDiv.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>${alert.message}</strong><br>
+                            <small>Source: ${alert.source} | Time: ${alert.time}</small>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-dark">${alert.action}</span><br>
+                            <button class="btn btn-sm btn-outline-danger mt-1" onclick="deleteAlert(${alert.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(alertDiv);
+            });
+        }
+
+        function filterAlerts() {
+            const severity = document.getElementById('severity-filter').value;
+            const search = document.getElementById('alert-search').value;
+            const date = document.getElementById('date-filter').value;
+            
+            alert(`Filtering alerts: Severity=${severity}, Search="${search}", Date=${date}`);
+            loadAlertsManagement();
+        }
+
+        function clearAlerts() {
+            if (confirm('Are you sure you want to clear all alerts?')) {
+                document.getElementById('alerts-management-container').innerHTML = '<div class="text-muted">All alerts cleared.</div>';
+            }
+        }
+
+        function exportAlerts() {
+            alert('Exporting alerts to CSV...');
+        }
+
+        function deleteAlert(id) {
+            if (confirm('Delete this alert?')) {
+                alert(`Alert ${id} deleted.`);
+                loadAlertsManagement();
+            }
+        }
+
+        // Network Scanner
+        function startScan() {
+            const target = document.getElementById('scan-target').value;
+            const scanType = document.getElementById('scan-type').value;
+            const portRange = document.getElementById('port-range').value;
+            
+            const resultsContainer = document.getElementById('scan-results');
+            resultsContainer.innerHTML = '<div class="text-info">Starting scan...</div>';
+            
+            // Simulate scan progress
+            let progress = 0;
+            const scanInterval = setInterval(() => {
+                progress += 10;
+                resultsContainer.innerHTML = `
+                    <div class="text-info">Scanning ${target}... ${progress}%</div>
+                    <div class="progress mb-2">
+                        <div class="progress-bar" style="width: ${progress}%"></div>
+                    </div>
+                `;
+                
+                if (progress >= 100) {
+                    clearInterval(scanInterval);
+                    showScanResults();
+                }
+            }, 500);
+        }
+
+        function showScanResults() {
+            const resultsContainer = document.getElementById('scan-results');
+            const sampleResults = [
+                { ip: '192.168.1.1', status: 'UP', ports: '22,80,443', services: 'SSH,HTTP,HTTPS' },
+                { ip: '192.168.1.100', status: 'UP', ports: '80,443', services: 'HTTP,HTTPS' },
+                { ip: '192.168.1.50', status: 'UP', ports: '21,22', services: 'FTP,SSH' },
+                { ip: '192.168.1.25', status: 'DOWN', ports: '-', services: '-' }
+            ];
+            
+            let resultsHTML = '<h6>Scan Results:</h6>';
+            sampleResults.forEach(result => {
+                const statusClass = result.status === 'UP' ? 'success' : 'danger';
+                resultsHTML += `
+                    <div class="card mb-2">
+                        <div class="card-body">
+                            <h6>${result.ip} <span class="badge bg-${statusClass}">${result.status}</span></h6>
+                            <small>Ports: ${result.ports} | Services: ${result.services}</small>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            resultsContainer.innerHTML = resultsHTML;
+        }
+
+        function stopScan() {
+            alert('Scan stopped.');
+            document.getElementById('scan-results').innerHTML = '<div class="text-muted">Scan stopped by user.</div>';
+        }
+
+        // Live Monitoring
+        function startPacketCapture() {
+            const captureContainer = document.getElementById('packet-capture');
+            captureContainer.innerHTML = '<div>Starting packet capture...</div>';
+            
+            // Simulate packet capture
+            const packetInterval = setInterval(() => {
+                const timestamp = new Date().toLocaleTimeString();
+                const srcIP = `192.168.1.${Math.floor(Math.random() * 255)}`;
+                const dstIP = `10.0.0.${Math.floor(Math.random() * 255)}`;
+                const protocol = ['TCP', 'UDP', 'ICMP'][Math.floor(Math.random() * 3)];
+                const size = Math.floor(Math.random() * 1500) + 64;
+                
+                const packetLine = `[${timestamp}] ${srcIP} -> ${dstIP} ${protocol} ${size} bytes`;
+                captureContainer.innerHTML += `<div>${packetLine}</div>`;
+                
+                // Keep only last 20 lines
+                const lines = captureContainer.innerHTML.split('<div>');
+                if (lines.length > 21) {
+                    captureContainer.innerHTML = lines.slice(-20).join('<div>');
+                }
+                
+                captureContainer.scrollTop = captureContainer.scrollHeight;
+            }, 1000);
+        }
+
+        // Settings Management
+        function saveSettings() {
+            const updateInterval = document.getElementById('update-interval').value;
+            const alertThreshold = document.getElementById('alert-threshold').value;
+            const autoBlock = document.getElementById('auto-block').checked;
+            const emailAlerts = document.getElementById('email-alerts').checked;
+            
+            alert(`Settings saved: Update=${updateInterval}s, Threshold=${alertThreshold}, Auto-block=${autoBlock}, Email=${emailAlerts}`);
+        }
+
+        function reloadRules() {
+            alert('Reloading security rules...');
+        }
+
+        // Utility Functions
+        function refreshAll() {
+            location.reload();
+        }
+
+        function getSeverityClass(severity) {
+            switch(severity.toLowerCase()) {
+                case 'critical': return 'danger';
+                case 'high': return 'warning';
+                case 'medium': return 'info';
+                case 'low': return 'success';
+                default: return 'secondary';
+            }
+        }
     </script>
 </body>
 </html>
