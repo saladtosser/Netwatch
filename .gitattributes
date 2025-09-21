@@ -1,0 +1,7 @@
+*.py linguist-language=Python
+netwatch linguist-vendored
+data/* linguist-vendored
+logs/* linguist-vendored
+templates/* linguist-vendored
+threat_intel/* linguist-vendored
+*.db linguist-vendored
