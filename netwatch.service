@@ -1,0 +1,41 @@
+[Unit]
+Description=NetWatch SIEM/IDS/IPS Agent
+Documentation=https://github.com/netwatch/netwatch
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStart=/usr/bin/env python3 -m netwatch.agent --config /etc/netwatch/config.yaml
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=5
+TimeoutStartSec=30
+TimeoutStopSec=30
+
+# Security and resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+NoNewPrivileges=false
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/log/netwatch /var/lib/netwatch /etc/netwatch
+
+# Environment
+Environment=PYTHONPATH=/opt/netwatch
+Environment=NETWATCH_LOG_LEVEL=INFO
+
+# Capabilities for packet capture
+CapabilityBoundingSet=CAP_NET_RAW CAP_NET_ADMIN CAP_SYS_ADMIN
+AmbientCapabilities=CAP_NET_RAW CAP_NET_ADMIN CAP_SYS_ADMIN
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=netwatch
+
+[Install]
+WantedBy=multi-user.target

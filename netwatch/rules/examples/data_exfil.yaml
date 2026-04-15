@@ -1,0 +1,56 @@
+name: Potential Data Exfiltration
+id: data-exfil-001
+description: Detects large data transfers to external IPs
+enabled: true
+severity: critical
+type: aggregation
+
+aggregation:
+  field: dst_ip
+  threshold: 3  # 3 or more large transfers
+  timeframe: 600  # 10 minutes
+  group_by:
+    - src_ip
+    - dst_ip
+
+detection:
+  fields:
+    proto: 
+      - TCP
+      - UDP
+    _meta.service:
+      $nin: 
+        - http
+        - https
+  regex:
+    dst_ip: '^(?!10\.|172\.(1[6-9]|2[0-9]|3[01])\.|192\.168\.)'  # Not private IP
+  condition: "$_meta.bytes > 10000000"  # > 10MB
+
+tags:
+  - exfiltration
+  - data_loss
+  - network
+  - critical
+
+response:
+  playbook:
+    - action: block_ip
+      target: dst_ip
+      duration: 7200
+    - action: capture_packets
+      filter: "host {dst_ip}"
+      duration: 300
+    - action: notify
+      channel: email
+      recipients:
+        - security@company.com
+      priority: high
+      message: "Critical: Potential data exfiltration to {dst_ip}"
+
+metadata:
+  author: NetWatch Team
+  created: 2024-01-01
+  mitre_attack:
+    - T1041  # Exfiltration Over C2 Channel
+    - T1048  # Exfiltration Over Alternative Protocol
+

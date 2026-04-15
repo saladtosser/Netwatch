@@ -1,67 +1,42 @@
-# NetWatch v2 - Enterprise Security Tool Requirements
-# Core IDS functionality
-scapy>=2.4.5
-rich>=12.0.0
-pyfiglet>=0.8.post1
+# NetWatch Enterprise SIEM/IDS/IPS - Production Requirements
+# Core dependencies for the complete platform
 
-# Web Dashboard
-flask>=2.0.0
-flask-socketio>=5.0.0
-python-socketio>=5.0.0
+# Web framework and API
+Flask>=2.2.0
+Flask-SocketIO>=5.0.0
 
-# Database
-sqlite3
+# Network monitoring and packet capture
+scapy>=2.4.0
 
-# Advanced Analytics
-numpy>=1.21.0
-pandas>=1.3.0
-scikit-learn>=1.0.0
+# System monitoring
+psutil>=5.0.0
 
-# Network Analysis
-netaddr>=0.8.0
-python-nmap>=0.6.1
+# Data processing and analysis
+numpy>=1.20.0
 
-# Threat Intelligence
-requests>=2.25.0
-beautifulsoup4>=4.9.0
+# Database and ORM
+SQLAlchemy>=1.4.0
+alembic>=1.8.0
 
-# Security & Encryption
-cryptography>=3.4.0
-pycryptodome>=3.10.0
+# Configuration and serialization
+PyYAML>=6.0
+aiofiles>=0.8.0
 
-# Logging & Monitoring
-loguru>=0.6.0
-psutil>=5.8.0
+# Async support
+asyncio-mqtt>=0.11.0
 
-# System Monitoring
-psutil>=5.8.0
+# Testing framework
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
 
-# Async Processing
-asyncio
-aiofiles>=0.7.0
+# Development and debugging
+pytest-cov>=4.0.0
+black>=22.0.0
+flake8>=5.0.0
 
-# Data Visualization
-matplotlib>=3.4.0
-plotly>=5.0.0
-
-# Machine Learning for Anomaly Detection
-tensorflow>=2.6.0
-torch>=1.9.0
-
-# Geographic Intelligence
-geoip2>=4.5.0
-maxminddb>=2.0.0
-
-# Performance & Scalability
-redis>=3.5.0
-celery>=5.2.0
-
-# API Integration
-fastapi>=0.70.0
-uvicorn>=0.15.0
-
-# Development & Testing
-pytest>=6.2.0
-black>=21.0.0
-flake8>=3.9.0
-
+# Optional: Advanced features
+# redis>=4.0.0          # For Redis queue backend
+# kafka-python>=2.0.0   # For Kafka integration
+# clickhouse-driver>=0.2.0  # For ClickHouse storage
+# prometheus-client>=0.15.0  # For metrics
+# aiohttp>=3.8.0        # For HTTP notifications

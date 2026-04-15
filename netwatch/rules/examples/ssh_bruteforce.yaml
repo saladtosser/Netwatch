@@ -1,0 +1,47 @@
+name: SSH Brute Force Attack
+id: ssh-brute-001
+description: Detects multiple failed SSH login attempts followed by a successful login
+enabled: true
+severity: high
+type: correlation
+
+correlation:
+  event_types:
+    - auth_failed
+    - auth_success
+  timeframe: 300  # 5 minutes
+  conditions:
+    - type: sequence
+      sequence:
+        - auth_failed
+        - auth_failed
+        - auth_failed
+        - auth_failed
+        - auth_failed
+        - auth_success
+    - type: field_match
+      field: src_ip  # Same source IP
+
+tags:
+  - authentication
+  - brute_force
+  - ssh
+  - lateral_movement
+
+response:
+  playbook:
+    - action: block_ip
+      target: src_ip
+      duration: 3600
+    - action: notify
+      channel: slack
+      message: "SSH brute force attack detected from {src_ip}"
+    - action: kill_session
+      user: "{user}"
+
+metadata:
+  author: NetWatch Team
+  created: 2024-01-01
+  references:
+    - https://attack.mitre.org/techniques/T1110/
+
